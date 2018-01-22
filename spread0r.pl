@@ -39,6 +39,7 @@ my $gtk_speed_label;
 my $gtk_sentence_text;
 my $gtk_timer;
 my $gtk_time_estimate;
+my $gtk_file_completion;
 
 # global variables
 my $wpm = 300;
@@ -52,6 +53,9 @@ my $hyphen = Text::Hyphen->new('min_word' => 15,
 my $total_time;
 my $word_count;
 my $all_text;
+
+my $file_completion;
+my $current_words = 0;
 
 
 ####################
@@ -148,11 +152,17 @@ sub get_next_word
 		$back_ptr-- if ($#words_buffer <= 0);
 	}
 
+	# Calc file completion
+	$current_words++;
+	$gtk_file_completion->set_markup("".sprintf('%2.2f%', $current_words*100/$word_count));
+	time_estimate();
+	$gtk_time_estimate->set_markup("$total_time");
+
 	return shift(@words_buffer);
 }
 
 sub time_estimate {
-	$total_time = $word_count / $wpm;
+	$total_time = ($word_count-$current_words) / $wpm;
 	if ($total_time < 60) {
 		$total_time = sprintf('%2.2f', $total_time) . " minutes";
 	} else {
@@ -394,8 +404,9 @@ sub main
 	$gtk_sentence_text = Gtk2::Label->new();
 	$gtk_sentence_text->set_markup("sentence nr: ");
 	$gtk_time_estimate = Gtk2::Label->new();
-
 	$gtk_time_estimate->set_markup("$total_time");
+	$gtk_file_completion = Gtk2::Label->new();
+	$gtk_file_completion->set_markup("$file_completion");
 
 	# horizontal box for the control buttons
 	$hbox = Gtk2::HBox->new(FALSE, 10);
@@ -410,6 +421,8 @@ sub main
 	$hbox->pack_start($gtk_sentence_text, FALSE, FALSE, 0);
 	$hbox->pack_start(Gtk2::VSeparator->new(), FALSE, FALSE, 4);
 	$hbox->pack_start($gtk_time_estimate, FALSE, FALSE, 0);
+	$hbox->pack_start(Gtk2::VSeparator->new(), FALSE, FALSE, 4);
+	$hbox->pack_start($gtk_file_completion, FALSE, FALSE, 0);
 
 	# vertical box for the rest
 	$vbox = Gtk2::VBox->new(FALSE, 10);
