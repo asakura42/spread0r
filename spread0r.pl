@@ -41,7 +41,7 @@ my $gtk_timer;
 my $gtk_time_estimate;
 
 # global variables
-my $wpm = 200;
+my $wpm = 300;
 my $pause_button;
 my $pause = 1;
 my $back_ptr = -1;
