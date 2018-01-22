@@ -38,6 +38,7 @@ my $gtk_text;
 my $gtk_speed_label;
 my $gtk_sentence_text;
 my $gtk_timer;
+my $gtk_time_estimate;
 
 # global variables
 my $wpm = 200;
@@ -48,6 +49,9 @@ my $prev_back_ptr = -1;
 my $fast_forward = 0;
 my $hyphen = Text::Hyphen->new('min_word' => 15,
 	'min_prefix' => 7, 'min_suffix' => 7, 'min_part' => 6);
+my $total_time;
+my $word_count;
+my $all_text;
 
 
 ####################
@@ -147,6 +151,15 @@ sub get_next_word
 	return shift(@words_buffer);
 }
 
+sub time_estimate {
+	$total_time = $word_count / $wpm;
+	if ($total_time < 60) {
+		$total_time = sprintf('%2.2f', $total_time) . " minutes";
+	} else {
+		$total_time = (sprintf('%2.2f', $total_time) / 60) . " hours";
+	}
+}
+
 #################
 # GTK callbacks #
 #################
@@ -187,6 +200,8 @@ sub button_slower
 {
 	$wpm -= 10 if ($wpm > 40);
 	$gtk_speed_label->set_markup("WPM: $wpm");
+	time_estimate();
+	$gtk_time_estimate->set_markup("$total_time");
 	return TRUE;
 }
 
@@ -194,6 +209,8 @@ sub button_faster
 {
 	$wpm += 10 if($wpm < 1000);
 	$gtk_speed_label->set_markup("WPM: $wpm");
+	time_estimate();	
+	$gtk_time_estimate->set_markup("$total_time");
 	return TRUE;
 }
 
@@ -316,13 +333,21 @@ sub main
 	$wpm = 40 if ($wpm < 40);
 	$wpm = 1000 if ($wpm > 1000);
 
+	# open file just to count total words
+	open(ALLTEXT, "<:encoding(UTF-8)", $file) || die "can't open UTF-8 encoded filename: $!";	
+	$/ = undef;
+	$all_text = <ALLTEXT>;
+	$/ = "\n";
+	$word_count = split(/\s+/, $all_text);	#get amount of words in file
+	close ALLTEXT;
+
 	# open file
 	printf("opening file: $file\n");
 	open(FILE, "<:encoding(UTF-8)", $file) || die "can't open UTF-8 encoded filename: $!";
 
 	printf("using words per minute = $wpm\n");
 
-	
+	time_estimate();
 	# set up window and quit callbacks
 	$window = Gtk2::Window->new;
 	$window->signal_connect(delete_event => \&button_quit);
@@ -368,6 +393,9 @@ sub main
 	# text label, showing the current sentence
 	$gtk_sentence_text = Gtk2::Label->new();
 	$gtk_sentence_text->set_markup("sentence nr: ");
+	$gtk_time_estimate = Gtk2::Label->new();
+
+	$gtk_time_estimate->set_markup("$total_time");
 
 	# horizontal box for the control buttons
 	$hbox = Gtk2::HBox->new(FALSE, 10);
@@ -380,6 +408,8 @@ sub main
 	$hbox->pack_start($gtk_speed_label, FALSE, FALSE, 0);
 	$hbox->pack_start(Gtk2::VSeparator->new(), FALSE, FALSE, 4);
 	$hbox->pack_start($gtk_sentence_text, FALSE, FALSE, 0);
+	$hbox->pack_start(Gtk2::VSeparator->new(), FALSE, FALSE, 4);
+	$hbox->pack_start($gtk_time_estimate, FALSE, FALSE, 0);
 
 	# vertical box for the rest
 	$vbox = Gtk2::VBox->new(FALSE, 10);
