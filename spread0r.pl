@@ -25,6 +25,9 @@ use Pod::Usage;
 use lib 'lib/';
 use Hyphen;
 
+use experimental 'switch';
+use Gtk2::Gdk::Keysyms;
+
 # defines
 my $font = "courier new 24";
 my $span_black_open = "<span background='white' foreground='black' font_desc='".$font."'><big>";
@@ -287,6 +290,30 @@ sub set_text
 	return TRUE;
 }
 
+sub keyin {
+  my $key=shift;
+  my $in=grep($key==$_,@Gtk2::Gdk::Keysyms{@_});
+  return $in>0 
+}
+sub keyevent {
+ my ($widget,$event,$param) = @_;
+ my $key = $event->keyval();
+
+ given($key) {
+   when($Gtk2::Gdk::Keysyms{space} ) { button_pause;}
+
+   when(keyin($key,qw/Escape q/)) { button_quit ;}
+   when(keyin($key,qw/< b    h leftarrow/))  { button_back; set_text;}
+   when(keyin($key,qw/>      l rightarrow/)) { button_forward; set_text;}
+   when(keyin($key,qw/plus   k uparrow/))    { button_faster;}
+   when(keyin($key,qw/minus  j downarrow/))  { button_slower;}
+
+
+
+   default {}
+ }
+}
+
 ########
 # main #
 ########
@@ -433,6 +460,9 @@ sub main
 	$vbox->pack_start($quit_button, FALSE, FALSE, 0);
 	$window->add($vbox);
 
+	# binds
+	$window->signal_connect('key-press-event' => \&keyevent);
+
 	# show window and start gtk main
 	$window->show_all;
 	Gtk2->main;
@@ -497,5 +527,40 @@ Skip all sentences until it reaches given sentence
 B<spread0r> will read the given utf8 encoded input file and present
 it to you word by word, so you can read the text without manually
 refocusing.  This can double your reading speed!
+
+=head2 Keys
+
+=over 8
+
+=item B<Escape, q>
+
+ quit
+
+=item B<h, E<lt>, b, leftarrow>
+
+ move back
+
+=item B<l, E<gt>, rightarrow>
+
+ move foward
+
+=item B<-, j, downarrow>
+
+ slower
+
+=item B<+, k, uparrow>
+
+ faster
+
+=item B<d>
+
+ launch browser to define current word
+
+=item B<o>
+
+ TODO: open in text editor at position
+
+=back
+
 
 =cut
