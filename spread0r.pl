@@ -45,7 +45,7 @@ my $gtk_time_estimate;
 my $gtk_file_completion;
 
 # global variables
-my $wpm = 300;
+my $wpm = 700;
 my $pause_button;
 my $pause = 1;
 my $back_ptr = -1;
