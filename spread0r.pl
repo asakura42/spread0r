@@ -60,6 +60,8 @@ my $all_text;
 my $file_completion;
 my $current_words = 0;
 
+my $ofile = "";
+my $oline;
 
 ####################
 # Helper functions #
@@ -68,7 +70,7 @@ my $current_words = 0;
 sub get_line
 {
 	my $line;
-	$/ = '.';
+	$/ =~ /[\.!\?;:]/;
 
 	if (!($line = <FILE>)) {
 		printf("reached end of file\n");
@@ -79,6 +81,7 @@ sub get_line
 
 	return $line;
 }
+
 
 sub escape {
 	my($data) = @_;
@@ -121,6 +124,9 @@ sub get_next_word
 	# if fast foward is specified, search the line
 	for (;$fast_forward; $fast_forward--) {
 		$line = get_line();
+		$oline = $line;
+		$oline =~ s/\s+$//;
+		$oline =~ s/\]/./;
 		@words_buffer = split(' ', $line);
 		$sentence_cnt++ if ($#words_buffer >= 0);
 		if ($fast_forward < 10) {
@@ -138,6 +144,9 @@ sub get_next_word
 			while ($#words_buffer < 0) {
 				$line = get_line();
 				@words_buffer = split(' ', $line);
+				$oline = $line;
+				$oline =~ s/\s+$//;
+				$oline =~ s/\]/./;
 			}
 			$sentence_cnt++;
 			#limit_word_length();
@@ -220,11 +229,19 @@ sub button_slower
 
 sub button_faster
 {
-	$wpm += 10 if($wpm < 1000);
+	$wpm += 10 if($wpm < 2000);
 	$gtk_speed_label->set_markup("WPM: $wpm");
 	time_estimate();	
 	$gtk_time_estimate->set_markup("$total_time");
 	return TRUE;
+}
+
+# my $file = $ARGV[0];
+# my $line;
+
+sub open_at {
+  system("st -e vim -s <(printf '/$oline\n') $ofile");
+ 1;
 }
 
 ######################
@@ -319,6 +336,7 @@ sub keyevent {
    when(keyin($key,qw/>      l rightarrow/)) { button_forward; set_text;}
    when(keyin($key,qw/plus   k uparrow/))    { button_faster;}
    when(keyin($key,qw/minus  j downarrow/))  { button_slower;}
+   when($Gtk2::Gdk::Keysyms{o} ) { open_at;}
 
 
 
@@ -378,9 +396,11 @@ sub main
 		$file = $ARGV[0];
 	}
 
+	$ofile = $file;
+
 	# limit wpm
 	$wpm = 40 if ($wpm < 40);
-	$wpm = 1000 if ($wpm > 1000);
+	$wpm = 2000 if ($wpm > 2000);
 
 	# open file just to count total words
 	open(ALLTEXT, "<:encoding(UTF-8)", $file) || die "can't open UTF-8 encoded filename: $!";	
@@ -570,7 +590,7 @@ refocusing.  This can double your reading speed!
 
 =item B<o>
 
- TODO: open in text editor at position
+open in vim at position
 
 =back
 
