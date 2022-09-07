@@ -70,6 +70,7 @@ my $oline;
 sub get_line
 {
 	my $line;
+	$/ = '.';
 	$/ =~ /[\.!\?;:]/;
 
 	if (!($line = <FILE>)) {
@@ -125,7 +126,7 @@ sub get_next_word
 	for (;$fast_forward; $fast_forward--) {
 		$line = get_line();
 		$oline = $line;
-		$oline =~ s/\s+$//;
+		$oline =~ s/^\s+|\s+$//;
 		$oline =~ s/\]/./;
 		@words_buffer = split(' ', $line);
 		$sentence_cnt++ if ($#words_buffer >= 0);
@@ -145,7 +146,7 @@ sub get_next_word
 				$line = get_line();
 				@words_buffer = split(' ', $line);
 				$oline = $line;
-				$oline =~ s/\s+$//;
+				$oline =~ s/^\s+|\s+$//;
 				$oline =~ s/\]/./;
 			}
 			$sentence_cnt++;
@@ -590,7 +591,7 @@ refocusing.  This can double your reading speed!
 
 =item B<o>
 
-open in vim at position
+open in vim editor at position
 
 =back
 
