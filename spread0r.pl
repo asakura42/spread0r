@@ -71,14 +71,14 @@ sub get_line
 {
 	my $line;
 	$/ = '.';
-	$/ =~ /[\.!\?;:]/;
+	$/ =~ /[\n\.!\?;:]/;
 
 	if (!($line = <FILE>)) {
 		printf("reached end of file\n");
 		close(FILE);
 		exit(-1);
 	}
-	$line =~ s/[\n\r]/ /g;
+	#	$line =~ s/[\n\r]/ /g;
 
 	return $line;
 }
@@ -241,7 +241,7 @@ sub button_faster
 # my $line;
 
 sub open_at {
-  system("st -e vim -s <(printf '/$oline\n') $ofile");
+  system("st -e nvim -c '/$oline' -c ':set hlsearch' $ofile");
  1;
 }
 
