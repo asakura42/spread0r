@@ -175,7 +175,7 @@ sub get_next_word
 }
 
 sub time_estimate {
-	$total_time = ($word_count-$current_words) / $wpm;
+	$total_time = ($word_count-$current_words)*1.36 / $wpm;
 	if ($total_time < 60) {
 		$total_time = sprintf('%2.2f', $total_time) . " minutes";
 	} else {
